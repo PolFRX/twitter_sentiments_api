@@ -138,6 +138,6 @@ def model():
 def predict(tweets, model_name):
     model = load_model(model_name)
     data = encode_tweets(tweets, MAX_LENGTH)
-    prediction = np.argmax(model.predict(data)['logits'])
+    predictions = model.predict(data)['logits']
 
-    return prediction
+    return predictions
