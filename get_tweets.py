@@ -43,38 +43,41 @@ def remove_emoji(string):
     return emoji_pattern.sub(r'', string)
 
 
-with open('credentials.json') as json_file:
-    data = json.load(json_file)
-    api_key = data['api_key']
-    api_secret = data['api_secret']
-    user_token = data['user_token']
-    user_secret = data['user_secret']
+def get_tweets():
+    with open('credentials.json') as json_file:
+        data = json.load(json_file)
+        api_key = data['api_key']
+        api_secret = data['api_secret']
+        user_token = data['user_token']
+        user_secret = data['user_secret']
 
-auth = OAuth1(api_key, api_secret, user_token, user_secret)
+    auth = OAuth1(api_key, api_secret, user_token, user_secret)
 
-word = input("Entrez le mot à chercher: ")
+    word = input("Entrez le mot à chercher: ")
 
-if '#' in word:
-    word = word.replace('#', '%23')
+    if '#' in word:
+        word = word.replace('#', '%23')
 
-url = f'https://api.twitter.com/2/tweets/search/recent?query={word}&tweet.fields=created_at,lang&max_results=100'
-r = req.get(url, auth=auth)
-
-txt = json.loads(r.text)
-data = txt["data"]
-
-for _ in range(10):
-    next = txt["meta"]["next_token"]
-    url = f'https://api.twitter.com/2/tweets/search/recent?query={word}&tweet.fields=created_at,lang' \
-          f'&max_results=100&next_token={next}'
+    url = f'https://api.twitter.com/2/tweets/search/recent?query={word}&tweet.fields=created_at,lang&max_results=100'
     r = req.get(url, auth=auth)
-    txt = json.loads(r.text)
-    data += txt["data"]
 
-dataset = []
-textt = []
-for tweet in data:
-    if tweet["lang"] == 'fr':
-        textt.append(tweet["text"])
-        txt = nlp_pipeline(tweet["text"])
-        dataset.append(txt)
+    txt = json.loads(r.text)
+    data = txt["data"]
+
+    for _ in range(10):
+        next = txt["meta"]["next_token"]
+        url = f'https://api.twitter.com/2/tweets/search/recent?query={word}&tweet.fields=created_at,lang' \
+              f'&max_results=100&next_token={next}'
+        r = req.get(url, auth=auth)
+        txt = json.loads(r.text)
+        data += txt["data"]
+
+    dataset = []
+    textt = []
+    for tweet in data:
+        if tweet["lang"] == 'fr':
+            textt.append(tweet["text"])
+            txt = nlp_pipeline(tweet["text"])
+            dataset.append(txt)
+
+    return dataset
