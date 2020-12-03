@@ -136,8 +136,12 @@ def model():
 
 
 def predict(tweets, model_name):
+    print(f'-- Start predicting tweets')
     model = load_model(model_name)
+    print(f'--- Model loaded')
     data = encode_tweets(tweets, MAX_LENGTH)
+    print(f'--- Tweets encoded')
     predictions = model.predict(data)['logits']
+    print(f'-- Predictions made')
 
     return predictions

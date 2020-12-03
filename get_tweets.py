@@ -44,6 +44,7 @@ def remove_emoji(string):
 
 
 def get_tweets(subject):
+    print(f'-- Start retrieving tweets')
     with open('credentials.json') as json_file:
         data = json.load(json_file)
         api_key = data['api_key']
@@ -77,5 +78,7 @@ def get_tweets(subject):
             textt.append(tweet["text"])
             txt = nlp_pipeline(tweet["text"])
             dataset.append(txt)
+
+    print(f'--- Get {len(dataset)} tweets')
 
     return dataset
