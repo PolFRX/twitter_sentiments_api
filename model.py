@@ -133,6 +133,3 @@ def model():
     # model = train(training_set, training_label)
     model = load_model('sentiments_bert')
     test(test_set, test_label, model)
-
-
-model()
