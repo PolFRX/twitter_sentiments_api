@@ -68,9 +68,11 @@ def get_tweets(subject):
     data = txt["data"]
 
     for _ in range(10):
-        next = txt["meta"]["next_token"]
+        if "next_token" not in txt["meta"]:
+            break
+        next_token = txt["meta"]["next_token"]
         url = f'https://api.twitter.com/2/tweets/search/recent?query={subject}+lang:fr+-is:retweet&max_results=100' \
-              f'&next_token={next}'
+              f'&next_token={next_token}'
         r = req.get(url, auth=auth)
         txt = json.loads(r.text)
         data += txt["data"]
