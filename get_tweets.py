@@ -1,5 +1,6 @@
 import requests as req
-from requests_oauthlib import OAuth1
+from requests_oauthlib import OAuth1, OAuth2
+import requests
 import json
 import re
 
@@ -50,13 +51,17 @@ def get_tweets(subject):
         api_secret = data['api_secret']
         user_token = data['user_token']
         user_secret = data['user_secret']
+        bearer_token = data['bearer_token']
 
-    auth = OAuth1(api_key, api_secret, user_token, user_secret)
+    # auth = OAuth1(api_key, api_secret, user_token, user_secret)
+    token = {'access_token': bearer_token, 'token_type': 'bearer'}
+    auth = OAuth2(token=token)
+
 
     if '#' in subject:
         subject = subject.replace('#', '%23')
 
-    url = f'https://api.twitter.com/2/tweets/search/recent?query={subject}&tweet.fields=created_at,lang&max_results=100'
+    url = f'https://api.twitter.com/2/tweets/search/recent?query={subject}+lang:fr+-is:retweet&max_results=100'
     r = req.get(url, auth=auth)
 
     txt = json.loads(r.text)
@@ -64,8 +69,8 @@ def get_tweets(subject):
 
     for _ in range(10):
         next = txt["meta"]["next_token"]
-        url = f'https://api.twitter.com/2/tweets/search/recent?query={subject}&tweet.fields=created_at,lang' \
-              f'&max_results=100&next_token={next}'
+        url = f'https://api.twitter.com/2/tweets/search/recent?query={subject}+lang:fr+-is:retweet&max_results=100' \
+              f'&next_token={next}'
         r = req.get(url, auth=auth)
         txt = json.loads(r.text)
         data += txt["data"]
@@ -73,11 +78,13 @@ def get_tweets(subject):
     dataset = []
     textt = []
     for tweet in data:
-        if tweet["lang"] == 'fr':
-            textt.append(tweet["text"])
-            txt = nlp_pipeline(tweet["text"])
-            dataset.append(txt)
+        textt.append(tweet["text"])
+        txt = nlp_pipeline(tweet["text"])
+        dataset.append(txt)
 
     print(f'--- Get {len(dataset)} tweets')
 
     return dataset
+
+
+get_tweets('#chasse')
