@@ -43,7 +43,7 @@ def remove_emoji(string):
     return emoji_pattern.sub(r'', string)
 
 
-def get_tweets():
+def get_tweets(subject):
     with open('credentials.json') as json_file:
         data = json.load(json_file)
         api_key = data['api_key']
@@ -53,12 +53,10 @@ def get_tweets():
 
     auth = OAuth1(api_key, api_secret, user_token, user_secret)
 
-    word = input("Entrez le mot à chercher: ")
+    if '#' in subject:
+        word = subject.replace('#', '%23')
 
-    if '#' in word:
-        word = word.replace('#', '%23')
-
-    url = f'https://api.twitter.com/2/tweets/search/recent?query={word}&tweet.fields=created_at,lang&max_results=100'
+    url = f'https://api.twitter.com/2/tweets/search/recent?query={subject}&tweet.fields=created_at,lang&max_results=100'
     r = req.get(url, auth=auth)
 
     txt = json.loads(r.text)
@@ -66,7 +64,7 @@ def get_tweets():
 
     for _ in range(10):
         next = txt["meta"]["next_token"]
-        url = f'https://api.twitter.com/2/tweets/search/recent?query={word}&tweet.fields=created_at,lang' \
+        url = f'https://api.twitter.com/2/tweets/search/recent?query={subject}&tweet.fields=created_at,lang' \
               f'&max_results=100&next_token={next}'
         r = req.get(url, auth=auth)
         txt = json.loads(r.text)
