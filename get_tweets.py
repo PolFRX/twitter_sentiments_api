@@ -12,7 +12,6 @@ def nlp_pipeline(text):
     text = text.replace('#', '')
     text = text.lower()
     text = text.replace('\n', ' ').replace('\r', '')
-    text = text.replace('#', '')
     text = ' '.join(text.split())
     text = re.sub(r"[A-Za-z\.]*[0-9]+[A-Za-z%°\.]*", "", text)
     text = re.sub(r"(\s\-\s|-$)", "", text)
