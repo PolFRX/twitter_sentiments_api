@@ -55,7 +55,7 @@ def get_tweets(subject):
     auth = OAuth1(api_key, api_secret, user_token, user_secret)
 
     if '#' in subject:
-        word = subject.replace('#', '%23')
+        subject = subject.replace('#', '%23')
 
     url = f'https://api.twitter.com/2/tweets/search/recent?query={subject}&tweet.fields=created_at,lang&max_results=100'
     r = req.get(url, auth=auth)
