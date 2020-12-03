@@ -133,3 +133,11 @@ def model():
     # model = train(training_set, training_label)
     model = load_model('sentiments_bert')
     test(test_set, test_label, model)
+
+
+def predict(tweets, model_name):
+    model = load_model(model_name)
+    data = encode_tweets(tweets, MAX_LENGTH)
+    prediction = np.argmax(model.predict(data)['logits'])
+
+    return prediction
