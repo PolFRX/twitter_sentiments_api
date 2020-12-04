@@ -4,8 +4,6 @@ import pandas as pd
 import numpy as np
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import SparseCategoricalCrossentropy as SCC
-from tensorflow.keras import models as km
-from sklearn import metrics
 
 
 DATASET_PATH = 'dataset/french_tweets.csv'
@@ -17,8 +15,8 @@ MAX_LENGTH = 460
 
 
 def get_dataset():
-    labels_train = np.load(TRAIN_LABEL_PATH)[:15000]
-    tweets_train = np.load(TRAIN_DATA_PATH)[:15000]
+    labels_train = np.load(TRAIN_LABEL_PATH)[:60000]
+    tweets_train = np.load(TRAIN_DATA_PATH)[:60000]
     labels_test = np.load(TEST_LABEL_PATH)[:5000]
     tweets_test = np.load(TEST_DATA_PATH)[:5000]
 
@@ -69,13 +67,13 @@ def encode_tweets(tweets, max_length=MAX_LENGTH):
     return encoded
 
 
-def train(data, labels, epochs=2, batch_size=3, model_name='sentiments_bert'):
-    model = Camembert.from_pretrained('jplu/tf-camembert-base')
+def train(data, labels, epochs=3, batch_size=3, model_name='sentiments_bert'):
+    model = Camembert.from_pretrained('jplu/tf-camembert-base', num_labels=2)
 
-    learning_rate = 5e-6
+    learning_rate = 2e-5
     loss_fn = SCC(from_logits=True)
     model.compile(
-        optimizer=Adam(learning_rate=learning_rate),
+        optimizer=Adam(learning_rate=learning_rate, epsilon=1e-8),
         loss=loss_fn,
         metrics=['accuracy']
     )
@@ -118,7 +116,7 @@ def test(data, labels, model):
 
 def load_model(name):
     path = os.getcwd() + "/models/" + name + ".h5"
-    model = Camembert.from_pretrained('jplu/tf-camembert-base')
+    model = Camembert.from_pretrained('jplu/tf-camembert-base', num_labels=2)
     model.load_weights(path)
 
     return model
@@ -130,8 +128,8 @@ def model():
     else:
         training_label, training_set, test_label, test_set = preprocess_dataset()
 
-    # model = train(training_set, training_label)
-    model = load_model('sentiments_bert')
+    model = train(training_set, training_label)
+    # model = load_model('sentiments_bert')
     test(test_set, test_label, model)
 
 
@@ -140,8 +138,14 @@ def predict(tweets, model_name):
     model = load_model(model_name)
     print(f'--- Model loaded')
     data = encode_tweets(tweets, MAX_LENGTH)
+    attention_mask = (data != 0).astype(np.int32)
+    data = {"input_ids": data, "attention_mask": attention_mask}
     print(f'--- Tweets encoded')
+    print(f'-- Predictions in process on {len(tweets)} tweets...')
     predictions = model.predict(data)['logits']
-    print(f'-- Predictions made')
+    print(f'\t DONE')
 
     return predictions
+
+
+# model()
