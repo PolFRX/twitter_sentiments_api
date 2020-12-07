@@ -146,6 +146,3 @@ def predict(tweets, model_name):
     print(f'\t DONE')
 
     return predictions
-
-
-# model()
