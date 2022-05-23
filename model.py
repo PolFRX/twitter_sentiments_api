@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import SparseCategoricalCrossentropy as SCC
+from loguru import logger
 
 
 DATASET_PATH = 'dataset/french_tweets.csv'
@@ -69,6 +70,7 @@ def encode_tweets(tweets, max_length=MAX_LENGTH):
 
 def train(data, labels, epochs=3, batch_size=3, model_name='sentiments_bert'):
     model = Camembert.from_pretrained('jplu/tf-camembert-base', num_labels=2)
+    model.roberta.trainable = False
 
     learning_rate = 2e-5
     loss_fn = SCC(from_logits=True)
@@ -111,7 +113,7 @@ def test(data, labels, model):
             good_pred += 1
 
     res = (good_pred/len(predictions['logits'])) * 100
-    print(f'Prediction on test set: {res}')
+    logger.info(f'Prediction on test set: {res}')
 
 
 def load_model(name):
@@ -134,15 +136,19 @@ def model():
 
 
 def predict(tweets, model_name):
-    print(f'-- Start predicting tweets')
+    logger.info(f'-- Start predicting tweets')
     model = load_model(model_name)
-    print(f'--- Model loaded')
+    logger.info(f'--- Model loaded')
     data = encode_tweets(tweets, MAX_LENGTH)
     attention_mask = (data != 0).astype(np.int32)
     data = {"input_ids": data, "attention_mask": attention_mask}
-    print(f'--- Tweets encoded')
-    print(f'-- Predictions in process on {len(tweets)} tweets...')
+    logger.info(f'--- Tweets encoded')
+    logger.info(f'-- Predictions in process on {len(tweets)} tweets...')
     predictions = model.predict(data)['logits']
-    print(f'\t DONE')
+    logger.info(f'\t DONE')
 
     return predictions
+
+
+if __name__ == "__main__":
+    model()

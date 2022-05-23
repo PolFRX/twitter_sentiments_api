@@ -1,9 +1,11 @@
 import requests as req
-from requests_oauthlib import OAuth1, OAuth2
-import requests
+from requests_oauthlib import OAuth2
 import json
 import re
 import demoji
+from wordcloud import WordCloud, STOPWORDS
+from matplotlib import pyplot as plt
+from loguru import logger
 
 
 def nlp_pipeline(text):
@@ -31,15 +33,13 @@ def nlp_pipeline(text):
 
 
 def get_tweets(subject):
-    print(f'-- Start retrieving tweets')
+    logger.info('-- Start retrieving tweets')
     with open('credentials.json') as json_file:
         data = json.load(json_file)
         bearer_token = data['bearer_token']
 
-    # auth = OAuth1(api_key, api_secret, user_token, user_secret)
     token = {'access_token': bearer_token, 'token_type': 'bearer'}
     auth = OAuth2(token=token)
-
 
     if '#' in subject:
         subject = subject.replace('#', '%23')
@@ -68,9 +68,28 @@ def get_tweets(subject):
         txt = nlp_pipeline(tweet["text"])
         dataset.append(txt)
 
-    print(f'--- Get {len(dataset)} tweets')
+    #word cloud
+    stop_words = set(STOPWORDS)
+    with open('stop_words_french.json', encoding='utf-8') as json_file:
+        stop_words_french = json.load(json_file)
+    stop_words.update(stop_words_french)
+    stop_words.add(subject.replace('%23', ''))
+    stop_words.add(subject.replace('%23', '').lower())
+    wordcloud = WordCloud(
+        background_color='white',
+        stopwords=stop_words,
+        max_words=200,
+        max_font_size=40,
+        scale=3,
+        random_state=1  # chosen at random by flipping a coin; it was heads
+    ).generate(str(dataset))
+
+    plt.figure(1, figsize=(12, 12))
+    plt.axis('off')
+
+    plt.imshow(wordcloud)
+    plt.show()
+
+    logger.info(f'--- Get {len(dataset)} tweets')
 
     return dataset
-
-
-# get_tweets('#chasse')
